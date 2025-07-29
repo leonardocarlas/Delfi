@@ -13,14 +13,14 @@ from data import get_earnings, get_goodwill_and_other_intangible_assets, get_mar
 
 
 def main():
-    Logo = text2art("--- Delfi ---")
+    Logo = text2art("Delfi Program")
     print(Logo)
     while True:
         TICKER = input("Inserisci il ticker dell'azienda (es. ENI.MI): ").strip()
         if not TICKER:
             print("Ticker non valido. Riprova.")
             continue
-
+        print(text2art(TICKER))
         data_str = date.today().strftime("%d-%m-%Y")
         FILE_NAME = f"{data_str}_{TICKER}"
         stock = yf.Ticker(TICKER)
