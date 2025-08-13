@@ -1,7 +1,21 @@
 from datetime import datetime, timedelta
 import yfinance as yf
 import pandas as pd
+from model import EarningPerYear, MediumPrice
+from typing import List
 
+def get_price_per_share(stock) -> str:
+    try:
+        info = stock.info
+        # print(info)
+        price_per_share = info.get("currentPrice")
+        if price_per_share:
+            return price_per_share
+        else:
+            return None, "Price per share data unavailable"
+    except Exception as e:
+        return None, f"Error fetching market cap: {str(e)}"
+    
 # Function to fetch market cap
 def get_market_cap(stock) -> str:
     try:
@@ -87,9 +101,8 @@ def ultimi_3_anni_dividendi(dividends_series):
 
 
 # Function to fetch earnings for the last 10 years
-def get_earnings(stock):
-    earnings_data = []
-    # Fetch net income from financials
+def get_earnings(stock) -> List[EarningPerYear]:
+    earnings_data: List[EarningPerYear] = []
     financials = stock.financials
     if not financials.empty:
         net_income_row = financials.loc["Net Income"] if "Net Income" in financials.index else None
@@ -97,22 +110,18 @@ def get_earnings(stock):
             for date in financials.columns:
                 year = date.year
                 net_income = net_income_row[date]
-                # Update or add entry for the year
-                for entry in earnings_data:
-                    if entry["Fiscal Year"] == year:
-                        entry["Net Income"] = float(net_income) if pd.notna(net_income) else None
-                        break
-                else:
-                    earnings_data.append({
-                        "Fiscal Year": year,
-                        "EPS": None,
-                        "Net Income": float(net_income) if pd.notna(net_income) else None
-                    })
-    print(earnings_data)    
+                earnings_data.append(
+                    EarningPerYear(
+                        year = year,
+                        earning = float(net_income) if pd.notna(net_income) else None
+                    )
+                )
+    return earnings_data
      
 
 
-def get_median_price(stock, years: int = 3) -> str:
+def get_median_price(stock, years: int = 3) -> List[MediumPrice]:
+    medium_prices = []
     try:
         # Calculate date range
         end_date = datetime.now()
@@ -124,24 +133,22 @@ def get_median_price(stock, years: int = 3) -> str:
             # Extract closing prices and add year column
             history["Year"] = history.index.year
             # Group by year and calculate median
-            yearly_medians = []
             for year in range(end_date.year - years + 1, end_date.year + 1):
                 year_prices = history[history["Year"] == year]["Close"].dropna()
                 if not year_prices.empty:
-                    yearly_medians.append({
-                        "Year": year,
-                        "Median Closing Price": float(year_prices.median())
-                    })
+                    medium_prices.append(
+                        MediumPrice(
+                            year=year,
+                            price=float(year_prices.median())
+                        )
+                    )
                 else:
-                    yearly_medians.append({
-                        "Year": year,
-                        "Median Closing Price": None
-                    })  # Include None for years with no data
-            if any(item["Median Closing Price"] is not None for item in yearly_medians):
-                return yearly_medians
-            else:
-                return None, "No valid closing price data available for any year"
-        else:
-            return None, "Historical price data unavailable"
+                    medium_prices.append(
+                        MediumPrice(
+                            year=year,
+                            price=None
+                        )
+                    )
+        return medium_prices
     except Exception as e:
         return None, f"Error fetching median price: {str(e)}"

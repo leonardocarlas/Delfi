@@ -29,12 +29,12 @@ Questo progetto utilizza Python e un ambiente virtuale per gestire le dipendenze
 
 4. Avvia il tuo script:
     ```bash
-    python main.py
+    python src/main.py
     ```
 
 ## Builda
     ```bash
-    pyinstaller --onefile --console --name "Delfi" --icon=favicon.ico lib/main.py
+    pyinstaller --onefile --console --name "Delfi" --icon=favicon.ico src/main.py
     ```
 
 
