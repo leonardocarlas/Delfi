@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import yfinance as yf
 import pandas as pd
-from model import EarningPerYear, MediumPrice
+from model import DividendPerYear, EarningPerYear, MediumPrice
 from typing import List
 
 def get_price_per_share(stock) -> str:
@@ -76,13 +76,14 @@ def get_goodwill_and_other_intangible_assets(stock) -> str:
         return None, f"Error fetching total Goodwill And Other Intangible Assets: {str(e)}"
     
 
-def ultimi_3_anni_dividendi(dividends_series):
+def ultimi_3_anni_dividendi(dividends_series) -> List[DividendPerYear]:
     """
     Prende una Series con indici datetime e valori di dividendi.
     Restituisce una lista con la somma dei dividendi per ciascuno degli ultimi 3 anni.
     """
+    dividends_per_year: List[DividendPerYear] = []
     # Ottieni l'anno corrente
-    anno_corrente = datetime.now().year
+    anno_corrente = datetime.now().year - 1
     
     # Crea un DataFrame temporaneo con anno e dividendo
     df = dividends_series.copy().to_frame(name='Dividendo')
@@ -90,13 +91,22 @@ def ultimi_3_anni_dividendi(dividends_series):
     
     # Filtro per gli ultimi 3 anni
     ultimi_anni = list(range(anno_corrente - 2, anno_corrente + 1))
+
     df_filtrato = df[df['Anno'].isin(ultimi_anni)]
     
     # Raggruppa e somma per anno
     somma_annua = df_filtrato.groupby('Anno')['Dividendo'].sum()
-    
+    dividends = [somma_annua.get(anno, 0.0) for anno in ultimi_anni]
+    dividends = dividends[::-1]  # Creates a reversed copy
+    anno: int = anno_corrente
+    for dividend in dividends:
+        dividends_per_year.append(
+            DividendPerYear(anno, dividend)
+        )
+        anno -= 1
+    return dividends_per_year
     # Crea lista ordinata per anno
-    return [somma_annua.get(anno, 0.0) for anno in ultimi_anni]
+    # return [somma_annua.get(anno, 0.0) for anno in ultimi_anni]
 
 
 
@@ -120,7 +130,7 @@ def get_earnings(stock) -> List[EarningPerYear]:
      
 
 
-def get_median_price(stock, years: int = 3) -> List[MediumPrice]:
+def get_median_price(stock, years: int = 4) -> List[MediumPrice]:
     medium_prices = []
     try:
         # Calculate date range

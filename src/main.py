@@ -12,7 +12,7 @@ from datetime import date
 
 
 from data import get_earnings, get_goodwill_and_other_intangible_assets, get_market_cap, get_median_price, get_price_per_share, get_total_current_assets, get_total_current_liabilities, ultimi_3_anni_dividendi
-from model import EarningPerYear, MediumPrice
+from model import DividendPerYear, EarningPerYear, MediumPrice
 
 
 def main():
@@ -39,9 +39,10 @@ def main():
         print(f"\n Market cap: {market_cap}")
         print(f"\n Number of shares: {number_of_shares}")
         # print(f"\n Goodwill And Other Intangible Assets: {goodwill}")
+        dividends: List[DividendPerYear] = ultimi_3_anni_dividendi(stock.dividends)
         print("\n Dividends: \n")
-        for dividend in ultimi_3_anni_dividendi(stock.dividends):
-            print(f"   2022  {dividend}")
+        for dividend in dividends:
+            print(f"   Year {dividend.year}:  {dividend.price}")
 
         earnings: List[EarningPerYear] = get_earnings(stock)
         print("\n Earnings: \n")

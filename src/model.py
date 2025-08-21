@@ -11,5 +11,9 @@ class MediumPrice:
         self.year = year
         self.price = price
 
-    
+class DividendPerYear:
+
+    def __init__(self, year: int, dividend: float | None):
+        self.year = year
+        self.price = dividend
     
